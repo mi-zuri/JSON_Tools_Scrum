@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Formatting Options</title>
+</head>
+<body>
+<h1>Select Formatting Options</h1>
+
+<!-- Form to get user input for JSON formatting -->
+<form action="/process-options" method="POST">
+    <h2>Minimize Options</h2>
+    <label for="minimize">Minimize JSON (remove whitespaces):</label>
+    <input type="checkbox" id="minimize" name="minimize" value="yes"><br><br>
+
+    <label for="unminimize">Unminimize JSON (add spaces and line breaks):</label>
+    <input type="checkbox" id="unminimize" name="unminimize" value="yes"><br><br>
+
+    <h2>Format with and without characters</h2>
+    <label for="includeChars">Characters to include in JSON:</label>
+    <input type="text" id="includeChars" name="includeChars" placeholder="e.g., a,b,c"><br><br>
+
+    <label for="excludeChars">Characters to exclude from JSON:</label>
+    <input type="text" id="excludeChars" name="excludeChars" placeholder="e.g., x,y,z"><br><br>
+
+    <button type="submit">Submit Options</button>
+</form>
+
+</html>
