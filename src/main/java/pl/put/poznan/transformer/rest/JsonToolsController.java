@@ -3,9 +3,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
+import org.thymeleaf.model.IProcessableElementTag;
 import pl.put.poznan.transformer.logic.JsonMinimizer;
 import pl.put.poznan.transformer.logic.JsonTransformer;
 
@@ -21,60 +23,42 @@ import java.util.List;
 public class JsonToolsController {
 
     private static final Logger logger = LoggerFactory.getLogger(JsonToolsController.class);
-    private JSONObject decodedJson;
+    private JsonTransformer json;
 
-    @PostMapping("/set")
-    public RedirectView makeUrlCompatible(@RequestParam String jsonInput) {
-        String decodedJson = decode(jsonInput);
+    //takes arguments as params, returns response entity with transposed json
+    // it uses request body so you need to send it in the postman body
+    @RequestMapping(path = "/input", method = RequestMethod.POST, produces = "application/json")
+    public ResponseEntity<String> processJsonInput(@RequestBody String jsonInput) {
+        logger.info("Received JSON input request");
 
-        String encodedJson = encode(decodedJson);
+        json = new JsonTransformer(jsonInput);
+        String decodedJson = json.decode();
+        logger.debug("Decoded JSON: {}", decodedJson);
+        return ResponseEntity.ok(json.encode());
 
-        // this is to show the json is holding newline characters
-        System.out.println(decodedJson);
-
-        this.decodedJson = new JSONObject(decodedJson);
-        RedirectView redirectView = new RedirectView();
-        redirectView.setUrl("/choose-option");
-        return redirectView;
     }
-
-    private String decode(String jsonInput) {
-        return URLDecoder.decode(jsonInput, StandardCharsets.UTF_8);
-    }
-
-    private String encode(String jsonInput) {
-        return URLEncoder.encode(jsonInput, StandardCharsets.UTF_8);
-    }
-
-    @PostMapping("/process-options")
-    public RedirectView ProcessOptions(
-            @RequestParam(value = "minimize", required = false) String minimize,
-            @RequestParam(value = "unminimize", required = false) String unminimize,
-            @RequestParam(value = "includeChars", required = false) String includeChars,
-            @RequestParam(value = "excludeChars", required = false) String excludeChars){
-
+    @RequestMapping(path = "/transform", method = RequestMethod.GET, produces = "application/json")
+    public String transform(@RequestParam(value = "minimize", required = false) String minimize,
+                            @RequestParam(value = "unminimize", required = false) String unminimize,
+                            @RequestParam(value = "includeChars", required = false) String includeChars,
+                            @RequestParam(value = "excludeChars", required = false) String excludeChars){
         List<JsonTransformer> transformers = new ArrayList<JsonTransformer>();
+        String newJson = json.getJson();
         if (minimize!=null)
-            transformers.add(new JsonMinimizer(this.decodedJson));
+            transformers.add(new JsonMinimizer(newJson));
         // todo for rest of the objects
 
         for (JsonTransformer transformer: transformers){
-            this.decodedJson = transformer.transform();
+            newJson = transformer.transform();
         }
-        RedirectView redirectView = new RedirectView();
-        redirectView.setUrl("/final-json?encodedJson=" + encode(this.decodedJson.toString()));
-        return redirectView;
-    }
-
-    @PostMapping("/reset")
-    public RedirectView Reset() {
-        RedirectView redirectView = new RedirectView();
-        redirectView.setUrl("");
-        return redirectView;
+        return newJson;
     }
 
 
-
+    @RequestMapping(path = "original-json", method = RequestMethod.GET, produces = "application/json")
+    public String returnOriginalJson(){
+        return json.getJson();
+    }
 
 }
 

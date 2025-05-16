@@ -6,7 +6,6 @@ import org.springframework.context.annotation.ComponentScan;
 
 
 @SpringBootApplication(scanBasePackages = {"pl.put.poznan.transformer.rest"})
-@ComponentScan(basePackages = {"pl.put.poznan.transformer.rest", "pl.put.poznan.transformer.web"})
 
 public class JsonToolsApplication {
 
