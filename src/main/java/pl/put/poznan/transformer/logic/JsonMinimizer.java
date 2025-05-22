@@ -5,11 +5,14 @@ import org.json.JSONObject;
 public class JsonMinimizer extends JsonTransformer{
 
 
-    public JsonMinimizer(String jsonObject){
+    public JsonMinimizer(Json jsonObject){
         super(jsonObject);
+    }
+    public JsonMinimizer(String json){
+        super(json);
     }
     @Override
     public String transform(){
-        return super.json;
+        return super.json.getJson();
     }
 }

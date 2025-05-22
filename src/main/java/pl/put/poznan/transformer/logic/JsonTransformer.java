@@ -8,31 +8,37 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 /**
- * This is just an example to show that the logic should be outside the REST service.
+ * Base class for JSON transformation logic.
+ * Provides foundation for different JSON transformation strategies.
+ * Maintains the original JSON input and implements basic transformation functionality
+ * that can be overridden by specific transformers.
  */
 public class JsonTransformer {
-    // i want to keep this original json - do not change it in transform!
-    protected String json;
+    protected Json json;
+    
+    /**
+     * Creates a JsonTransformer instance with a provided Json object.
+     *
+     * @param json The Json object to be transformed
+     */
+    public JsonTransformer(Json json) {
+        this.json = json;
+    }
+
+    /**
+     * Creates a JsonTransformer instance with a provided JSON string.
+     * Automatically converts the string into a Json object.
+     *
+     * @param json The JSON string to be transformed
+     */
     public JsonTransformer(String json){
-        this.json = json;
+        this.json = new Json(json);
     }
 
-    public void setJson(String json){
-        this.json = json;
-    }
+    /* Override this method in subclasses to implement specific transformation logic */
+return this.json.getJson();
 
-    public String getJson(){
-        return this.json;
-    }
-
-    public String decode() {
-        return URLDecoder.decode(json, StandardCharsets.UTF_8);
-    }
-
-    public String encode() {
-        return URLEncoder.encode(json, StandardCharsets.UTF_8);
-    }
     public String transform(){
-        return this.json;
+        return this.json.getJson();
     };
 }
