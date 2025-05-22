@@ -36,7 +36,6 @@ public class JsonTransformer {
     }
 
     /* Override this method in subclasses to implement specific transformation logic */
-return this.json.getJson();
 
     public String transform(){
         return this.json.getJson();
