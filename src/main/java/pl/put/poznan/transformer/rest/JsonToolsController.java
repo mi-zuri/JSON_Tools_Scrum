@@ -1,113 +1,63 @@
 package pl.put.poznan.transformer.rest;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.JSONObject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
-import org.thymeleaf.model.IProcessableElementTag;
-import pl.put.poznan.transformer.logic.Json;
-import pl.put.poznan.transformer.logic.JsonMinimizer;
 import pl.put.poznan.transformer.logic.JsonTransformer;
+import pl.put.poznan.transformer.logic.JsonTransformerFactory;
 
 import java.io.IOException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * REST API controller for JSON transformation tools.
- * Provides endpoints for:
- * - Receiving and processing JSON input
- * - Applying various JSON transformations (minimize, unminimize, etc.)
- * - Retrieving original JSON
- * - Getting available transformation options
  */
 @RestController
+@RequestMapping("/json-tools")
 public class JsonToolsController {
 
     private static final Logger logger = LoggerFactory.getLogger(JsonToolsController.class);
-    private Json json;
+    private final JsonTransformerFactory transformerFactory;
 
-    
+    public JsonToolsController(JsonTransformerFactory transformerFactory) {
+        this.transformerFactory = transformerFactory;
+    }
+
     /**
-     * Endpoint for receiving and processing JSON input.
-     * Stores the provided JSON for further transformations and returns encoded version.
+     * Endpoint for processing JSON input and applying transformations.
      *
      * @param jsonInput The JSON string to be processed, received in request body
-     * @return ResponseEntity containing URL-encoded JSON string
+     * @param type      The type of transformation (e.g., "minify", "pretty")
+     * @return ResponseEntity containing the transformed JSON string
      */
-    @RequestMapping(path = "/input", method = RequestMethod.POST, produces = "application/json")
-    public ResponseEntity<String> processJsonInput(@RequestBody String jsonInput) {
-        logger.info("Received JSON input request");
+    @PostMapping(path = "/transform", produces = "application/json")
+    public ResponseEntity<String> transformJson(@RequestBody String jsonInput,
+                                                @RequestParam(value = "type", required = false, defaultValue = "raw") String type) throws IOException {
+        logger.info("Received JSON transformation request with type: {}", type);
 
-        json = new Json(jsonInput);
-        String decodedJson = json.decode();
-        logger.debug("Decoded JSON: {}", decodedJson);
-        return ResponseEntity.ok(json.encode());
+        // Get the appropriate transformer from the factory
+        JsonTransformer transformer = transformerFactory.getTransformer(type);
 
-    }
-    
-    /**
-     * Endpoint for applying various JSON transformations.
-     *
-     * @param minimize Flag indicating whether the JSON should be minimized
-     * @param unminimize Flag indicating whether the JSON should be unminimized
-     * @param includeChars List of characters to include in the JSON
-     * @param excludeChars List of characters to exclude from the JSON
-     * @return URL-encoded JSON string after applying the specified transformations
-    */
-    @RequestMapping(path = "/transform", method = RequestMethod.GET, produces = "application/json")
-    public String transform(@RequestParam(value = "minimize", required = false) String minimize,
-                            @RequestParam(value = "unminimize", required = false) String unminimize,
-                            @RequestParam(value = "includeChars", required = false) String includeChars,
-                            @RequestParam(value = "excludeChars", required = false) String excludeChars){
-        List<JsonTransformer> transformers = new ArrayList<JsonTransformer>();
-        String newJson = json.decode();
-        if (minimize!=null)
-            transformers.add(new JsonMinimizer(newJson));
-        // todo for rest of the objects
-        for (JsonTransformer transformer: transformers){
-            newJson = transformer.transform();
-        }
-        return newJson;
-    }
+        // Apply the transformation
+        String transformedJson = transformer.transform(jsonInput);
 
-
-    /**
-     * Endpoint for retrieving the original JSON data.
-     * Returns the JSON content in its unmodified form as it was last stored through the /input endpoint.
-     * Does not apply any transformations or formatting to the returned JSON string.
-     *
-     * @return The original JSON string without any modifications
-     * @throws IllegalStateException if no JSON has been stored yet
-     * @see #processJsonInput(String)
-     * @see Json#getJson()
-     */
-    @RequestMapping(path = "/original-json", method = RequestMethod.GET, produces = "application/json")
-    public String returnOriginalJson(){
-        return json.getJson();
+        logger.debug("Transformed JSON: {}", transformedJson);
+        return ResponseEntity.ok(transformedJson);
     }
 
     /**
      * Endpoint for retrieving available JSON transformation options.
-     * Returns a list of supported transformation operations that can be applied to JSON data.
-     * Currently supports:
-     * - minimize: Removes unnecessary whitespace and formatting
      *
-     * @return List of strings containing available transformation options
+     * @return List of supported transformation types
      */
-    @RequestMapping(path = "/options", method = RequestMethod.GET, produces = "application/json")
-    public List<String> returnOptions(){
-        List<String> options = new ArrayList<String>();
-        options.add("minimize");
-       return options;
+    @GetMapping(path = "/options", produces = "application/json")
+    public List<String> getTransformationOptions() {
+        List<String> options = new ArrayList<>();
+        options.add("minify");
+        options.add("pretty");
+        options.add("raw");
+        return options;
     }
-
 }
-
-
