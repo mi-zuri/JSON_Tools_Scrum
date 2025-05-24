@@ -10,7 +10,7 @@ import org.springframework.context.annotation.ComponentScan;
  * This Spring Boot application provides REST endpoints for JSON transformation operations.
  * The application scans for components in the pl.put.poznan.transformer.rest package.
  */
-@SpringBootApplication(scanBasePackages = {"pl.put.poznan.transformer.rest"})
+@SpringBootApplication(scanBasePackages = {"pl.put.poznan.transformer.rest", "pl.put.poznan.transformer.logic"})
 public class JsonToolsApplication {
 
     /**

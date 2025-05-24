@@ -29,19 +29,23 @@ public class JsonToolsController {
      * Endpoint for processing JSON input and applying transformations.
      *
      * @param jsonInput The JSON string to be processed, received in request body
-     * @param type      The type of transformation (e.g., "minify", "pretty")
+     * @param type      The type of transformation (e.g., "minify", "pretty", "raw") applied in sequence separated by comma
      * @return ResponseEntity containing the transformed JSON string
+     * @throws IOException if there is an error processing the JSON
      */
     @PostMapping(path = "/transform", produces = "application/json")
     public ResponseEntity<String> transformJson(@RequestBody String jsonInput,
-                                                @RequestParam(value = "type", required = false, defaultValue = "raw") String type) throws IOException {
+                                                @RequestParam(value = "type", required = false, defaultValue = "raw") List<String> type) throws IOException {
+
         logger.info("Received JSON transformation request with type: {}", type);
 
         // Get the appropriate transformer from the factory
-        JsonTransformer transformer = transformerFactory.getTransformer(type);
+        String transformedJson = jsonInput;
+        for (String transformation: type) {
+            JsonTransformer transformer = transformerFactory.getTransformer(transformation);
+            transformedJson = transformer.transform(transformedJson);
+        }
 
-        // Apply the transformation
-        String transformedJson = transformer.transform(jsonInput);
 
         logger.debug("Transformed JSON: {}", transformedJson);
         return ResponseEntity.ok(transformedJson);
