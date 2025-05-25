@@ -13,7 +13,15 @@
 
     <groupId>pl.put.poznan</groupId>
     <artifactId>io-project-architecture</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.0</version> <!-- Version of your project - should much the git tag -->
+    <!--
+    To apply the git tag, you can use the following commands:
+    git commit ...
+    git tag v1.0.0
+    git push origin main v1.0.0
+
+    Could be automated with Maven Release or Maven Versions Plugin
+    -->
 
 	<properties>
         <java.version>11</java.version>
