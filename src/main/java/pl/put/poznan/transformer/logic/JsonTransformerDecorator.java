@@ -8,7 +8,6 @@ import java.io.IOException;
  * This class implements the JsonTransformer interface and delegates the transformation
  * to a component of type JsonTransformer.
  */
-// Base Decorator
 public abstract class JsonTransformerDecorator implements JsonTransformer {
     protected final JsonTransformer component;
 

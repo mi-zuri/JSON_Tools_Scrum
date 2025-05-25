@@ -9,7 +9,6 @@ import java.io.IOException;
  * This class extends JsonTransformerDecorator and overrides the transform method
  * to remove unnecessary whitespace from the JSON string.
  */
-// Decorator for minifying JSON output
 public class MinifyJsonTransformerDecorator extends JsonTransformerDecorator {
     private final ObjectMapper objectMapper = new ObjectMapper();
 

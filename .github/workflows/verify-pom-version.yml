@@ -1,5 +1,5 @@
 name: Consistent project version
-# Checks that the version in the POM file matches the Git tag.
+# Checks if the version in the POM file matches the Git tag.
 
 on:
   push:

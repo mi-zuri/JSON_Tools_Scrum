@@ -9,7 +9,6 @@ import java.io.IOException;
  * Decorator for JSON transformers that improves the readability of JSON output.
  *
  */
-// Decorator for minifying JSON output
 public class PrettyPrintJsonTransformerDecorator extends JsonTransformerDecorator {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
