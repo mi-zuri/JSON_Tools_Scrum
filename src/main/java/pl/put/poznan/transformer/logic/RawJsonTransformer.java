@@ -15,8 +15,6 @@ public class RawJsonTransformer implements JsonTransformer {
      *
      * @param json The input JSON string to be "transformed" (passed through unchanged)
      * @return The original input JSON string without any modifications
-     * @throws IOException This implementation does not throw IOException, but the method
-     *                     signature maintains consistency with the JsonTransformer interface
      */
     @Override
     public String transform(String json) {
