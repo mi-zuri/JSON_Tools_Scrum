@@ -26,26 +26,34 @@ public class JsonToolsController {
     }
 
     /**
-     * Endpoint for processing JSON input and applying transformations.
+     * Endpoint for processing JSON input and applying transformations. If an error occurs during the transformation process, it prints the message to the log.
      *
      * @param jsonInput The JSON string to be processed, received in request body
      * @param type      The type of transformation (e.g., "minify", "pretty", "raw") applied in sequence separated by comma
      * @return ResponseEntity containing the transformed JSON string
-     * @throws IOException if there is an error processing the JSON
      */
     @PostMapping(path = "/transform", produces = "application/json")
-    public ResponseEntity<String> transformJson(@RequestBody String jsonInput,
-                                                @RequestParam(value = "type", required = false, defaultValue = "raw") List<String> type) throws IOException {
+    public ResponseEntity<String> transformJson(@RequestBody(required = false) String jsonInput,
+                                                @RequestParam(value = "type", required = false, defaultValue = "raw") List<String> type) {
+        if (jsonInput == null) {
+            logger.error("Empty jsonInput");
+            return ResponseEntity.badRequest().body("Error during JSON transformation, please provide a JSON input in the body");
 
+        }
         logger.info("Received JSON transformation request with type: {}", type);
 
         // Get the appropriate transformer from the factory
         String transformedJson = jsonInput;
         for (String transformation: type) {
             JsonTransformer transformer = transformerFactory.getTransformer(transformation);
-            transformedJson = transformer.transform(transformedJson);
+            try {
+                transformedJson = transformer.transform(transformedJson);
+            }
+            catch (IOException e) {
+                logger.error("Error during JSON transformation, invalid JSON");
+                return ResponseEntity.badRequest().body("Error during JSON transformation, verify your JSON input");
+            }
         }
-
 
         logger.debug("Transformed JSON: {}", transformedJson);
         return ResponseEntity.ok(transformedJson);
@@ -64,4 +72,5 @@ public class JsonToolsController {
         options.add("raw");
         return options;
     }
+
 }

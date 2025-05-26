@@ -18,10 +18,15 @@ public class PrettyPrintJsonTransformerDecorator extends JsonTransformerDecorato
 
     @Override
     public String transform(String json) throws IOException {
-        // Delegate to component (e.g., raw or previously decorated)
-        String fullJson = super.transform(json);
-        // Parse and pretty-print with default settings
-        JsonNode node = objectMapper.readTree(fullJson);
-        return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(node);
+        try {
+            String fullJson = super.transform(json);
+
+            JsonNode node = objectMapper.readTree(fullJson);
+            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(node);
+        }
+        catch (IOException e) {
+            throw new IOException("Error formatting JSON", e);
+        }
+
     }
 }

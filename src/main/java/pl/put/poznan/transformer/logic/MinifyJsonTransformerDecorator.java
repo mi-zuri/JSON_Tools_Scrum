@@ -18,10 +18,13 @@ public class MinifyJsonTransformerDecorator extends JsonTransformerDecorator {
 
     @Override
     public String transform(String json) throws IOException {
-        // first get the “raw” or previously-decorated JSON
-        String fullJson = super.transform(json);
-        // parse & write without any extra whitespace
-        JsonNode node = objectMapper.readTree(fullJson);
-        return objectMapper.writeValueAsString(node);
+        try {
+            String fullJson = super.transform(json);
+            JsonNode node = objectMapper.readTree(fullJson);
+            return objectMapper.writeValueAsString(node);
+        }
+        catch (IOException e) {
+            throw new IOException("Error formatting JSON", e);
+        }
     }
 }
