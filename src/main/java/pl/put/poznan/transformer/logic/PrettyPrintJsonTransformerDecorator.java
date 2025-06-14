@@ -32,6 +32,9 @@ public class PrettyPrintJsonTransformerDecorator extends JsonTransformerDecorato
      */
     @Override
     public String transform(String json) throws IOException {
+        if (json == null || json.isEmpty()) {
+            return null;
+        }
         try {
             String fullJson = super.transform(json);
             JsonNode node = objectMapper.readTree(fullJson);

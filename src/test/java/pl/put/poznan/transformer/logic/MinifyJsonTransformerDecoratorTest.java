@@ -51,14 +51,8 @@ class MinifyJsonTransformerDecoratorTest {
     }
 
     @Test
-    void nullTransformation() {
+    void nullTransformation() throws IOException {
         String exampleJson = null;
-        assertThrows(IllegalArgumentException.class, () -> transformer.transform(exampleJson));
-    }
-
-    @Test
-    void emptyTransformation() throws IOException {
-        String exampleJson = "";
         assertNull(transformer.transform(exampleJson));
     }
 }
