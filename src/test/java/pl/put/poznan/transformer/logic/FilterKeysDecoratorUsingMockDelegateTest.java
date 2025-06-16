@@ -9,7 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 /** * Unit tests for the FilterKeysJsonTransformerDecorator using a mock delegate.
  * This class tests the behavior of the decorator when it interacts with a mocked JsonTransformer delegate.
@@ -36,14 +36,20 @@ class FilterKeysDecoratorUsingMockDelegateTest {
     @Test
     void decoratorPropagatesDelegateException() throws Exception {
         String inputJson = "{\"glossary\":{\"title\":\"some title\",\"ignored\":\"value\"}}";
-        when(mockDelegate.transform(inputJson)).thenThrow(new RuntimeException("Delegate failure"));
+        RuntimeException originalException = new RuntimeException("Delegate failure");
+        when(mockDelegate.transform(inputJson)).thenThrow(originalException);
+
 
         JsonTransformer decorator = new FilterKeysJsonTransformerDecorator(mockDelegate, Set.of("glossary", "title"));
-        try {
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             decorator.transform(inputJson);
-        } catch (Exception e) {
-            assertEquals("Delegate failure", e.getMessage());
-        }
+        });
+
+        assertEquals(originalException.getMessage(), exception.getMessage());
+        assertSame(originalException.getMessage(), exception.getMessage());
+        verify(mockDelegate, times(1)).transform(inputJson);
+
+
     }
 
 
@@ -53,11 +59,16 @@ class FilterKeysDecoratorUsingMockDelegateTest {
         when(mockDelegate.transform(inputJson)).thenReturn(inputJson);
         JsonTransformer decorator = new FilterKeysJsonTransformerDecorator(mockDelegate, Set.of("glossary", "title"));
 
-        decorator.transform(inputJson);
-        decorator.transform(inputJson);
-        decorator.transform(inputJson);
+        String result1 = decorator.transform(inputJson);
+        String result2 = decorator.transform(inputJson);
+        String result3 = decorator.transform(inputJson);
 
         verify(mockDelegate, times(3)).transform(inputJson);
+
+        String expectedOutput = "{\"glossary\":{\"title\":\"some title\"}}";
+        assertEquals(expectedOutput, result1);
+        assertEquals(expectedOutput, result2);
+        assertEquals(expectedOutput, result3);
     }
 
     @Test
@@ -68,12 +79,23 @@ class FilterKeysDecoratorUsingMockDelegateTest {
         when(mockDelegate.transform(inputJson2)).thenReturn(inputJson2);
         JsonTransformer decorator = new FilterKeysJsonTransformerDecorator(mockDelegate, Set.of("glossary", "title"));
 
-        decorator.transform(inputJson1);
-        decorator.transform(inputJson2);
+        String result1 = decorator.transform(inputJson1);
+        String result2 = decorator.transform(inputJson2);
+        System.out.println(result1);
+        System.out.println(result2);
 
         verify(mockDelegate, times(1)).transform(inputJson1);
         verify(mockDelegate, times(1)).transform(inputJson2);
+
+        String expectedOutput1 = "{\"glossary\":{\"title\":\"first title\"}}";
+        String expectedOutput2 = "{\"glossary\":{\"title\":\"second title\"}}";
+
+        assertEquals(expectedOutput1, result1);
+        assertEquals(expectedOutput2, result2);
+
+        assertNotEquals(result1, result2);
     }
+
 
     @Test
     void sequentialCallsReturnDifferentFilteredResults() throws Exception {
