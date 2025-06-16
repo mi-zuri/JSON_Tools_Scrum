@@ -48,6 +48,7 @@ class FilterKeysJsonTransformerDecoratorTest {
     }
 
 
+<<<<<<< HEAD
 //    @Test
 //    void emptyTransformation() throws Exception {
 //        String exampleJson = "{}";
@@ -55,6 +56,15 @@ class FilterKeysJsonTransformerDecoratorTest {
 //        String returned = transformer.transform(exampleJson);
 //        assertThrows(IllegalArgumentException.class, () -> transformer.transform(exampleJson));
 //    }
+=======
+    @Test
+    void emptyTransformation() throws Exception {
+        String exampleJson = "{}";
+        JsonTransformer transformer = new FilterKeysJsonTransformerDecorator(new RawJsonTransformer(), Set.of("glossary", "title"));
+        String returned = transformer.transform(exampleJson);
+        assertEquals("{}", returned);
+    }
+>>>>>>> feature/mock-testing
 
     @Test
     void emptySetTransformation() {
