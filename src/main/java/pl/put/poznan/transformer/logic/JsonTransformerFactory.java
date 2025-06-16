@@ -35,11 +35,11 @@ public class JsonTransformerFactory {
      * This overloaded method supports transformations that require additional configuration, such as key filtering.
      *
      * @param type The type of transformation requested (e.g., "minify", "pretty", "filter")
-     * @param allowedKeys Set of keys to retain when using "filter" transformation type (ignored for other types)
+     * @param keys Set of keys for filter operations - keys to retain for "filter" or keys to remove for "filter-out"
      * @return A JsonTransformer instance configured for the requested transformation type
-     * @throws IllegalArgumentException if filter type is requested but allowedKeys is null or empty
+     * @throws IllegalArgumentException if filter type is requested but keys is null or empty
      */
-    public JsonTransformer getTransformer(String type, Set<String> allowedKeys) {
+    public JsonTransformer getTransformer(String type, Set<String> keys) {
         JsonTransformer base = new RawJsonTransformer();
 
         switch (type.toLowerCase()) {
@@ -48,10 +48,15 @@ public class JsonTransformerFactory {
             case "pretty":
                 return new PrettyPrintJsonTransformerDecorator(base);
             case "filter":
-                if (allowedKeys == null || allowedKeys.isEmpty()) {
+                if (keys == null || keys.isEmpty()) {
                     throw new IllegalArgumentException("Filter transformation requires non-empty set of allowed keys");
                 }
-                return new FilterKeysJsonTransformerDecorator(base, allowedKeys);
+                return new FilterKeysJsonTransformerDecorator(base, keys);
+            case "filter-out":
+                if (keys == null || keys.isEmpty()) {
+                    throw new IllegalArgumentException("Filter-out transformation requires non-empty set of keys to remove");
+                }
+                return new FilterOutKeysJsonTransformerDecorator(base, keys);
             default:
                 return base;
         }

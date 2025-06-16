@@ -28,45 +28,62 @@ public class JsonToolsController {
      * Endpoint for processing JSON input and applying transformations. If an error occurs during the transformation process, it prints the message to the log.
      *
      * @param jsonInput The JSON string to be processed, received in request body
-     * @param type      The type of transformation (e.g., "minify", "pretty", "raw") applied in sequence separated by comma
-     * @param keys      Comma-separated list of keys to retain when using "filter" transformation (optional, only used with filter type)
+     * @param type      The type of transformation (e.g., "minify", "pretty", "raw", "filter", "filter-out") applied in sequence separated by comma
+     * @param includeKeys Comma-separated list of keys to retain for "filter" operations (optional)
+     * @param excludeKeys Comma-separated list of keys to remove for "filter-out" operations (optional)
      * @return ResponseEntity containing the transformed JSON string
      */
     @PostMapping(path = "/transform", produces = "application/json")
     public ResponseEntity<String> transformJson(@RequestBody(required = false) String jsonInput,
                                                 @RequestParam(value = "type", required = false, defaultValue = "raw") List<String> type,
-                                                @RequestParam(value = "keys", required = false) String keys) {
+                                                @RequestParam(value = "includeKeys", required = false) String includeKeys,
+                                                @RequestParam(value = "excludeKeys", required = false) String excludeKeys) {
         if (jsonInput == null) {
             logger.error("Empty jsonInput");
             return ResponseEntity.badRequest().body("Error during JSON transformation, please provide a JSON input in the body");
-
         }
+
         logger.info("Received JSON transformation request with type: {}", type);
-
-        if (keys != null) {
-            logger.info("Filter keys specified: {}", keys);
+        if (includeKeys != null) {
+            logger.info("Include keys parameter specified: {}", includeKeys);
+        }
+        if (excludeKeys != null) {
+            logger.info("Exclude keys parameter specified: {}", excludeKeys);
         }
 
-        // Parse allowed keys for filter transformation
-        Set<String> allowedKeys = null;
-        if (keys != null && !keys.trim().isEmpty()) {
-            allowedKeys = new HashSet<>(Arrays.asList(keys.split("\\s*,\\s*")));
-            logger.debug("Parsed allowed keys: {}", allowedKeys);
+        // Parse include keys for filter operations
+        Set<String> includeKeySet = null;
+        if (includeKeys != null && !includeKeys.trim().isEmpty()) {
+            includeKeySet = new HashSet<>(Arrays.asList(includeKeys.split("\\s*,\\s*")));
+            logger.debug("Parsed include keys: {}", includeKeySet);
+        }
+
+        // Parse exclude keys for filter-out operations
+        Set<String> excludeKeySet = null;
+        if (excludeKeys != null && !excludeKeys.trim().isEmpty()) {
+            excludeKeySet = new HashSet<>(Arrays.asList(excludeKeys.split("\\s*,\\s*")));
+            logger.debug("Parsed exclude keys: {}", excludeKeySet);
         }
 
         // Get the appropriate transformer from the factory
         String transformedJson = jsonInput;
-        for (String transformation: type) {
+        for (String transformation : type) {
             JsonTransformer transformer;
 
             try {
-                // Check if this transformation is "filter" and requires keys
+                // Check if this transformation requires keys parameter
                 if ("filter".equalsIgnoreCase(transformation)) {
-                    if (allowedKeys == null || allowedKeys.isEmpty()) {
-                        logger.error("Filter transformation requested but no keys provided");
-                        return ResponseEntity.badRequest().body("Filter transformation requires 'keys' parameter with comma-separated key names");
+                    if (includeKeySet == null || includeKeySet.isEmpty()) {
+                        logger.error("Filter transformation requested but no includeKeys provided");
+                        return ResponseEntity.badRequest().body("Filter transformation requires 'includeKeys' parameter with comma-separated key names");
                     }
-                    transformer = transformerFactory.getTransformer(transformation, allowedKeys);
+                    transformer = transformerFactory.getTransformer(transformation, includeKeySet);
+                } else if ("filter-out".equalsIgnoreCase(transformation)) {
+                    if (excludeKeySet == null || excludeKeySet.isEmpty()) {
+                        logger.error("Filter-out transformation requested but no excludeKeys provided");
+                        return ResponseEntity.badRequest().body("Filter-out transformation requires 'excludeKeys' parameter with comma-separated key names");
+                    }
+                    transformer = transformerFactory.getTransformer(transformation, excludeKeySet);
                 } else {
                     transformer = transformerFactory.getTransformer(transformation);
                 }
@@ -93,12 +110,6 @@ public class JsonToolsController {
      */
     @GetMapping(path = "/options", produces = "application/json")
     public List<String> getTransformationOptions() {
-        List<String> options = new ArrayList<>();
-        options.add("minify");
-        options.add("pretty");
-        options.add("filter");
-        options.add("raw");
-        return options;
+        return Arrays.asList("minify", "pretty", "filter", "filter-out", "raw");
     }
-
 }
