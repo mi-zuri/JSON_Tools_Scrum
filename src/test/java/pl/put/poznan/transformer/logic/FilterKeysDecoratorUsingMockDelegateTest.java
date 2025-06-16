@@ -81,8 +81,6 @@ class FilterKeysDecoratorUsingMockDelegateTest {
 
         String result1 = decorator.transform(inputJson1);
         String result2 = decorator.transform(inputJson2);
-        System.out.println(result1);
-        System.out.println(result2);
 
         verify(mockDelegate, times(1)).transform(inputJson1);
         verify(mockDelegate, times(1)).transform(inputJson2);
